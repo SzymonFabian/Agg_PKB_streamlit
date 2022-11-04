@@ -4,7 +4,6 @@ from xmlrpc.client import DateTime
 import pandas as pd
 import streamlit as st
 import altair as alt
-import plotly.express as px
 import plotly.graph_objects as go
 
 
@@ -71,9 +70,6 @@ selected_country = st.sidebar.multiselect('Kraj', sorted_country, sorted_country
 #kraje = ("Poland", "Germany","Lithuania","Denmark","Italy","Slovenia")
 
 ff = cc[cc.Country.isin(selected_country)]
-
-
-
 
 
 
