@@ -142,7 +142,7 @@ if selected == "Dynamik":
     """)
 
     #wycięto bezrobocie
-    zmienne = ["PKB","CPI","Konsumpcja prywatna","Konumpcja publiczna","Inwestycje","Eksport","Import","Zatrudnienie"]
+    zmienne = ["PKB","CPI","Konsumpcja prywatna","Konsumpcja publiczna","Inwestycje","Eksport","Import","Zatrudnienie"]
     wybor_zmiennej = st.sidebar.selectbox("Zmienna",zmienne)
 
 
@@ -333,18 +333,6 @@ if selected == "Wkładu we wzrost":
         
 
     st.plotly_chart(fig, use_container_width=False)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
