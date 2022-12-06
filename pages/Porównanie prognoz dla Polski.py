@@ -9,7 +9,6 @@ from io import BytesIO
 from zipfile import ZipFile
 import urllib.request
 from streamlit_option_menu import option_menu
-import numpy as np
 
 
 
