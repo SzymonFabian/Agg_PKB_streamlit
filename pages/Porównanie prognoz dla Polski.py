@@ -11,6 +11,7 @@ import urllib.request
 from streamlit_option_menu import option_menu
 
 
+
 def rok(x):
     return x.year
 
@@ -123,36 +124,48 @@ st.markdown("""
     Przedstawienie prognoz głównych instytucji: **KE** (Komisji Europejskiej), **NBP** (Narodowego Banku Polskiego), **MF** (Ministerstwa Finansów). \n
     Analizowane zmienne są w ujęciu realnym.
 """)
+with st.sidebar:
+    selected = option_menu(
+        menu_title = "Porównanie:", 
+        options = ["Dynamik", "Wkładu we wzrost"],
+        menu_icon = "cast",
+        default_index = 0,
+        orientation = "horizontal"
+    )
+st.sidebar.markdown("""-------""")
 
-selected = option_menu(
-    menu_title = None, 
-    options = ["Dynamiki", "Wkład we wzrost"],
-    menu_icon = "cast",
-    default_index = 0,
-    orientation = "horizontal"
-)
 
-if selected == "Dynamiki": 
+if selected == "Dynamik": 
 
     st.markdown("""
-    Wykres przedstawia wybrane prognozy dynamiki (%, r/r), dla wybranej zmiennej.
+    Wykres przedstawia prognozy dynamiki dla wybranej zmiennej (%, r/r).
     """)
 
     #wycięto bezrobocie
-    zmienne = ["PKB","CPI","Konsumpcja prywatna","Konumpcja publiczna","Inwestycje","Eksport","Import","Zatrudnienie"]
+    zmienne = ["PKB","CPI","Konsumpcja prywatna","Konsumpcja publiczna","Inwestycje","Eksport","Import","Zatrudnienie"]
     wybor_zmiennej = st.sidebar.selectbox("Zmienna",zmienne)
 
-        #usuwanie z listy KE prognozy Summer i Winter bo nie ma w nich pokazanych wkładów we wzrost
-    y=KE["Prognoza"].unique()
+
 
     wybor_prognozy_NBP = st.sidebar.multiselect("Wybór prognozy NBP",sorted(NBP["Prognoza"].unique().tolist(), reverse=True),sorted(NBP["Prognoza"].unique().tolist(), reverse=True)[0])
-    wybor_prognozy_KE = st.sidebar.multiselect("Wybór prognozy KE",y,sorted(y,reverse=False)[0])
+    #wybor_prognozy_KE = st.sidebar.multiselect("Wybór prognozy KE",y,sorted(y,reverse=False)[0])
     wybor_prognozy_MF = st.sidebar.multiselect("Wybór prognozy MF",sorted(MF["Prognoza"].unique().tolist(), reverse=True),sorted(MF["Prognoza"].unique().tolist(), reverse=True)[0])
 
+    
+
+
+    if wybor_zmiennej in ("PKB","CPI"):
+                #usuwanie z listy KE prognozy Summer i Winter bo nie ma w nich pokazanych wkładów we wzrost
+        y=KE["Prognoza"].unique()
+        wybor_prognozy_KE = st.sidebar.multiselect("Wybór prognozy KE",y,sorted(y,reverse=False)[0])
+    else:
+                #usuwanie z listy KE prognozy Summer i Winter bo nie ma w nich pokazanych wkładów we wzrost
+        y=KE[(KE["XTR"].notnull().values)]["Prognoza"].unique()
+        wybor_prognozy_KE = st.sidebar.multiselect("Wybór prognozy KE",y,sorted(y,reverse=False)[0])
+
+
+
     wybor_prognozy = wybor_prognozy_NBP + wybor_prognozy_KE + wybor_prognozy_MF 
-
-
-
     #####################################
     #WYBÓR DANYCH
     #####################################
@@ -171,25 +184,60 @@ if selected == "Dynamiki":
     }
     wybrana_zmienna = dict.get(wybor_zmiennej) 
 
+    ttt = list()
 
-    dynamiki = df[[wybrana_zmienna,"Prognoza","Rok"]][df.Prognoza.isin(wybor_prognozy)]
+    for j,i in enumerate(df.loc[:,"Prognoza"].str[:2]):
+        if i == "KE":
+            ttt.append("blue") 
+        elif i =="NB":
+            ttt.append("green") 
+        elif i =="MF":
+            ttt.append("red") 
+    df["Kolor"] = ttt
+
+    Numer = list(range(1,2))
+
+    for i in range(1, len(df["Prognoza"])):
+        if df["Kolor"].iloc[i] != df["Kolor"].iloc[i-1]:
+                Numer.append(1)
+        else:
+            if df["Prognoza"].iloc[i] == df["Prognoza"].iloc[i-1]:
+                Numer.append(Numer[i-1])
+            else:
+                Numer.append(Numer[i-1]+1)
+
+    df["Numer"] = Numer
+    df["kolor"] = df["Kolor"] + df["Numer"].astype(str)
+
+
+    tmp = {'kolor': ['green1','green2','green3','green4','red1','red2','red3','red4','blue1','blue2','blue3','blue4'],
+         'hex': ['#91d17d','#6bd14b','#2ea30a','#185c04','#eb8888','#de5757','#d11515','#5e0606','#9699eb','#575bde','#0e15cf','#060963']}
+    hex = pd.DataFrame(data=tmp)
+    df = df.merge(hex, on='kolor', how='left')
+
+
+
+    dynamiki = df[[wybrana_zmienna,"Prognoza","Rok","hex"]][df.Prognoza.isin(wybor_prognozy)]
     dynamiki["Rok"] = pd.to_datetime(dynamiki["Rok"], format='%Y')
 
+    
+
     fig = px.line(dynamiki , x="Rok", y=wybrana_zmienna, color='Prognoza', text=wybrana_zmienna, symbol="Prognoza",width=1000, height=500)
-    #fig = px.scatter(temp, x="Rok", y=wybor_zmiennej, color="Prognoza")
-    #fig = px.histogram(temp, x="Rok", y=wybor_zmiennej,color='Prognoza', barmode='group')
     fig.update_traces(textposition="bottom right")
     fig.update_xaxes(dtick="M12")
+
+    for i in range(len(fig['data'])):
+        fig['data'][i]['line']['color'] =dynamiki["hex"].unique()[i]
 
     st.plotly_chart(fig, use_container_width=False)
 
     st.sidebar.caption('*CPI w przypadku KE to HICP')
 
 
-if selected == "Wkład we wzrost":
+if selected == "Wkładu we wzrost":
 
     st.markdown("""
-    Wykres przedstawia wybrane prognozy wkładu we wzrost PKB (%, r/r) trzech kategorii (Popytu krajowego, Zapasów, Eksportu netto).
+    Wykres przedstawia prognozowane wkłady we wzrost PKB (%, r/r) trzech głównych kategorii : Popytu krajowego, Zapasów i Eksportu netto.
     """)
 
     #usuwanie z listy KE prognozy Summer i Winter bo nie ma w nich pokazanych wkładów we wzrost
@@ -285,18 +333,5 @@ if selected == "Wkład we wzrost":
         
 
     st.plotly_chart(fig, use_container_width=False)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
