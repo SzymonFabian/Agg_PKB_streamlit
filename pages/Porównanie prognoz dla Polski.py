@@ -43,7 +43,7 @@ for i in x:
     tmp_df = tmp_df.drop('Zmienna', axis=1)
     tmp_df = tmp_df.T
     tmp_df = tmp_df.iloc[:,[0,4,5,6,7,8,9,10,11,13,14]]
-    tmp_df = tmp_df.set_axis(['CPI','PKB','Popyt_krajowy','PCR','GCR','ITR','wklad_eks_netto','XTR','MTR','LN','UR'], axis=1, inplace=False)
+    tmp_df = tmp_df.set_axis(['CPI','PKB','Popyt_krajowy','PCR','GCR','ITR','wklad_eks_netto','XTR','MTR','LN','UR'], axis=1)
     tmp_df["Prognoza"] = "NBP - {}".format(i)
     tmp_df["Rok"] = tmp_df.index
     #nie jestem pewny czy dobrze liczę udział zapasów w dynamice PKB
@@ -72,7 +72,7 @@ for i in x:
     tmp_df = tmp_df.drop('Kategoria',axis=1)
     tmp_df = tmp_df.T
     tmp_df = tmp_df.iloc[:,[0,1,2,3,4,5,7,8,9,10,11,16]]
-    tmp_df = tmp_df.set_axis(["PKB","PCR","GCR","ITR","XTR","MTR","Popyt_krajowy","Zapasy","wklad_eks_netto","LN","UR","CPI"], axis=1, inplace=False)
+    tmp_df = tmp_df.set_axis(["PKB","PCR","GCR","ITR","XTR","MTR","Popyt_krajowy","Zapasy","wklad_eks_netto","LN","UR","CPI"], axis=1)
     tmp_df = tmp_df.round(1)
     tmp_df["Rok"] = tmp_df.index
     tmp_df["Prognoza"] = "KE - {}".format(i)
